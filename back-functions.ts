@@ -5,7 +5,8 @@ function getData() {
 
     if (!RE || !EM || !DB) throw new Error('🛑 Cannot find sheets named "' + responsesSheetName + '" and "' + databasesSheetName + '"');
 
-    const respArrays = RE.getRange(2, 1, RE.getLastRow(), 3).getValues().filter(row => row[0]);
+    const respRange = new Range(RE, {columns: ['Time', 'Activties', 'Email']});
+    const respArrays = respRange.range().getValues().filter(row => row[0]);
     const dateArrays = DB.getRange(2, 1, DB.getLastRow(), 3).getValues().filter(row => row[0]);
     const dataArrays = EM.getRange(3, 3, EM.getLastRow(), 4).getValues().filter(row => row[0]);
     const emailEqual = areSetsEqual(new Set(respArrays.map(col => col[2]).flat()), new Set(dataArrays.map(col => col[0]).flat()));
