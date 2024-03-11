@@ -1,19 +1,24 @@
 function getData() {   
-    const SS = SpreadsheetApp.openById(linkedSpreadsheet);
-    const RE = SS.getSheetByName(responsesSheetName);
-    const DB = SS.getSheetByName(databasesSheetName);
+    const SS = SpreadsheetApp.openById(linkedSpreadsheet), PR = SpreadsheetApp.openById(linkedFinalReport);
+    const RE = SS.getSheetByName(responsesSheetName), EM = SS.getSheetByName(databasesSheetName);
+    const DB = PR.getSheetByName(reportDatabaseName);
 
-    if (!RE || !DB) throw new Error('🛑 Cannot find sheets! Make sure they are named: "' + responsesSheetName + '" and "' + databasesSheetName + '"');
+    if (!RE || !EM || !DB) throw new Error('🛑 Cannot find sheets named "' + responsesSheetName + '" and "' + databasesSheetName + '"');
 
     const respArrays = RE.getRange(2, 1, RE.getLastRow(), 3).getValues().filter(row => row[0]);
-    const dataArrays = DB.getRange(3, 3, DB.getLastRow(), 2).getValues().filter(row => row[0]);
+    const dateArrays = DB.getRange(2, 1, DB.getLastRow(), 3).getValues().filter(row => row[0]);
+    const dataArrays = EM.getRange(3, 3, EM.getLastRow(), 4).getValues().filter(row => row[0]);
     const emailEqual = areSetsEqual(new Set(respArrays.map(col => col[2]).flat()), new Set(dataArrays.map(col => col[0]).flat()));
 
-    if (emailEqual !== 'YES') for (const email of emailEqual) dataArrays.push([email, ]);
+    if (emailEqual !== 'YES') for (const email of emailEqual) dataArrays.push([email, , , ]);
 
-    for (let i = 0; i < dataArrays.length; i++) dataArrays[i][1] = respArrays.findLast(row => row[2] === dataArrays[i][0]);
-    
-    DB.getRange(3, 3, dataArrays.length, 2).setValues(dataArrays);
+    for (let i = 0; i < dataArrays.length; i++) {
+      dataArrays[i][1] = respArrays.findLast(row => row[2] === dataArrays[i][0]);
+      dataArrays[i][3] = dateArrays.findLast(row => row[0] === dataArrays[i][2])?.[2] ?? '';
+    }
+
+    setDataValidation(EM.getRange(3, 5, EM.getLastRow(), 1), dateArrays.map(col => col[0]).flat().filter(Boolean));
+    EM.getRange(3, 3, dataArrays.length, 4).setValues(dataArrays);
 }
 
 function sendFormByEmail() {

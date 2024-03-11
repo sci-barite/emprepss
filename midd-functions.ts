@@ -10,3 +10,12 @@ function areSetsEqual<T>(setA: Set<T>, setB: Set<T>): string | string[] {
     if (unequal.length === 0) return 'YES';
     return unequal;
 }
+
+function setDataValidation(range: GoogleAppsScript.Spreadsheet.Range, options: string[]) {
+    const rules = SpreadsheetApp.newDataValidation()
+        .requireValueInList(options, true) // Define the options for the dropdown
+        .setAllowInvalid(false) // Disallow input that doesn't match the dropdown options
+        .build();
+    range.clearDataValidations();
+    range.setDataValidation(rules);
+}
